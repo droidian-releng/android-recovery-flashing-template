@@ -1,13 +1,13 @@
 #!/sbin/sh
-# Ubport GSI Backend
-# erfanoabdi @ xda-developers
-# Based on anykernel2 script by osm0sis
+# hybris-mobian GSI Backend
+# Based on ubports GSI script by erfanoabdi @ xda-developers
 
 OUTFD=/proc/self/fd/$2;
 ZIP="$3";
 DIR=`dirname "$ZIP"`;
 
 mount_vendor(){
+  # detect vendor partition based on current boot slot for treble devices
   current_slot=$(grep -o 'androidboot\.slot_suffix=_[a-b]' /proc/cmdline)
   case "${current_slot}" in
     "androidboot.slot_suffix=_a")
@@ -29,17 +29,20 @@ mount_vendor(){
   if [ -n "${partition}" ]; then
     ui_print "Found vendor partition for current slot ${partition}"
 
+    # mount vendor partition
     mount -o ro ${partition} /vendor
 
     ui_print "Vendor mounted"
   fi
 }
+
 ui_print() {
   until [ ! "$1" ]; do
     echo -e "ui_print $1\nui_print" > $OUTFD;
     shift;
   done;
 }
+
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 set_perm_recursive() {
   dirs=$(echo $* | $bb awk '{ print substr($0, index($0,$5)) }');
@@ -49,6 +52,7 @@ set_perm_recursive() {
     find "$i" -type f -exec chmod $4 {} +;
   done;
 }
+
 abort() { ui_print "$*"; umount /vendor; umount /data; exit 1; }
 
 show_progress 1.34 4;
@@ -60,34 +64,39 @@ ui_print "***";
 ui_print " ";
 ui_print " ";
 
+# mount vendor and data
 mount_vendor;
 mount /data;
 
-mkdir -p /data/hybris-mobian/bin;
+# create tmp directory
+mkdir -p /data/hybris-mobian;
 cd /data/hybris-mobian;
+
+# unzip busybox and rootfs
 ui_print "Installing GSI...";
 unzip -o "$ZIP";
+
 if [ $? != 0 -o -z "$(ls /data/hybris-mobian/tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
-chmod -R 755 /data/hybris-mobian/tools /data/hybris-mobian/bin;
+
+# set busybox permissions
+chmod -R 755 /data/hybris-mobian/tools
 bb=/data/hybris-mobian/tools/busybox;
 
-for i in $($bb --list); do
-  $bb ln -s $bb /data/hybris-mobian/bin/$i;
-done;
-if [ $? != 0 -o -z "$(ls /data/hybris-mobian/bin)" ]; then
-  abort "Recovery busybox setup failed. Aborting...";
-fi;
-PATH="/data/hybris-mobian/bin:$PATH" $bb ash /data/hybris-mobian/setup.sh $2;
+# run setup.sh on busybox's ash
+$bb ash /data/hybris-mobian/setup.sh $2;
 if [ $? != "0" ]; then
   abort;
 fi;
 
+# delete tmp directory
 rm -rf /data/hybris-mobian;
 
+# umount vendor and data
 umount /vendor;
 umount /data;
+
 ui_print " ";
 ui_print "Done!";
 
