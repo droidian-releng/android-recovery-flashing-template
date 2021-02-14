@@ -37,4 +37,9 @@ ui_print "Resizing rootfs to 8GB";
 e2fsck -fy /data/rootfs.img
 resize2fs /data/rootfs.img 8G
 
+# halium initramfs workaround,
+# create symlink to android-rootfs inside /data
+if [ ! -f /data/android-rootfs.img ]; then
+	ln -s /var/lib/lxc/android/android-rootfs.img /data/android-rootfs.img
+fi
 ## end install
