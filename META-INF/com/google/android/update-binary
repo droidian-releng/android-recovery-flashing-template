@@ -1,5 +1,5 @@
 #!/sbin/sh
-# hybris-mobian GSI Backend
+# Droidian GSI Backend
 # Based on ubports GSI script by erfanoabdi @ xda-developers
 
 OUTFD=/proc/self/fd/$2;
@@ -58,8 +58,8 @@ abort() { ui_print "$*"; umount /vendor; umount /data; exit 1; }
 show_progress 1.34 4;
 ui_print " ";
 ui_print "***";
-ui_print "hybris-mobian GSI installer";
-ui_print "https://hybris-mobian.org";
+ui_print "Droidian GSI installer";
+ui_print "https://droidian.org";
 ui_print "***";
 ui_print " ";
 ui_print " ";
@@ -69,29 +69,29 @@ mount_vendor;
 mount /data;
 
 # create tmp directory
-mkdir -p /data/hybris-mobian;
-cd /data/hybris-mobian;
+mkdir -p /data/droidian;
+cd /data/droidian;
 
 # unzip busybox and rootfs
 ui_print "Installing GSI...";
 unzip -o "$ZIP";
 
-if [ $? != 0 -o -z "$(ls /data/hybris-mobian/tools)" ]; then
+if [ $? != 0 -o -z "$(ls /data/droidian/tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
 
 # set busybox permissions
-chmod -R 755 /data/hybris-mobian/tools
-bb=/data/hybris-mobian/tools/busybox;
+chmod -R 755 /data/droidian/tools
+bb=/data/droidian/tools/busybox;
 
 # run setup.sh on busybox's ash
-$bb ash /data/hybris-mobian/setup.sh $2;
+$bb ash /data/droidian/setup.sh $2;
 if [ $? != "0" ]; then
   abort;
 fi;
 
 # delete tmp directory
-rm -rf /data/hybris-mobian;
+rm -rf /data/droidian;
 
 # umount vendor and data
 umount /vendor;
