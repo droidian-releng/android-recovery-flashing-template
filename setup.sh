@@ -10,6 +10,11 @@ ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
 ## GSI install
 cp -fpr /data/droidian/data/* /data/;
 
+# resize rootfs
+ui_print "Resizing rootfs to 8GB";
+e2fsck -fy /data/rootfs.img
+resize2fs /data/rootfs.img 8G
+
 mkdir /s;
 mkdir /r;
 
@@ -31,11 +36,6 @@ mv /data/70-droidian.rules /r/etc/udev/rules.d/70-$VENDOR_DEVICE_PROP.rules;
 
 # umount rootfs
 umount /r;
-
-# resize rootfs
-ui_print "Resizing rootfs to 8GB";
-e2fsck -fy /data/rootfs.img
-resize2fs /data/rootfs.img 8G
 
 # halium initramfs workaround,
 # create symlink to android-rootfs inside /data
