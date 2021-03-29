@@ -6,6 +6,16 @@ OUTFD=/proc/self/fd/$2;
 ZIP="$3";
 DIR=`dirname "$ZIP"`;
 
+should_mount() {
+    if cat /proc/mounts | awk '{ print $2 }' | grep -q "^$1\$"; then
+        # Already mounted
+        return 1;
+    else
+        # Should mount!
+        return 0;
+    fi
+}
+
 mount_vendor(){
   # detect vendor partition based on current boot slot for treble devices
   current_slot=$(grep -o 'androidboot\.slot_suffix=_[a-b]' /proc/cmdline)
@@ -65,8 +75,15 @@ ui_print " ";
 ui_print " ";
 
 # mount vendor and data
-mount_vendor;
-mount /data;
+if should_mount /vendor; then
+    mount_vendor;
+    vendor_mounted="yes";
+fi;
+
+if should_mount /data; then
+    mount /data;
+    data_mounted="yes";
+fi;
 
 # create tmp directory
 mkdir -p /data/droidian;
@@ -94,8 +111,8 @@ fi;
 rm -rf /data/droidian;
 
 # umount vendor and data
-umount /vendor;
-umount /data;
+[ "$vendor_mounted" == "yes" ] && umount /vendor;
+[ "$data_mounted" == "yes" ] && umount /data;
 
 ui_print " ";
 ui_print "Done!";
