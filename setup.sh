@@ -40,6 +40,6 @@ umount /r;
 # halium initramfs workaround,
 # create symlink to android-rootfs inside /data
 if [ ! -e /data/android-rootfs.img ]; then
-	ln -s /halium-system/var/lib/lxc/android/android-rootfs.img /data/android-rootfs.img
+	ln -s /halium-system/var/lib/lxc/android/android-rootfs.img /data/android-rootfs.img || true
 fi
 ## end install
