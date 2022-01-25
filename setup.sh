@@ -1,4 +1,4 @@
-# Droidian GSI installer Script
+# Droidian Adaptation for the Xiaomi Pocophone F1 (beryllium)
 # https://droidian.org
 
 OUTFD=/proc/self/fd/$1;
@@ -7,32 +7,32 @@ VENDOR_DEVICE_PROP=`grep ro.product.vendor.device /vendor/build.prop | cut -d "=
 # ui_print <text>
 ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
 
-## GSI install
-mv /data/droidian/data/* /data/;
-
-# resize rootfs
-ui_print "Resizing rootfs to 8GB";
-e2fsck -fy /data/rootfs.img
-resize2fs /data/rootfs.img 8G
-
-mkdir /s;
 mkdir /r;
 
 # mount droidian rootfs
 mount /data/rootfs.img /r;
 
-# mount android gsi
-mount /r/var/lib/lxc/android/android-rootfs.img /s
+# Apply bluetooth fix
+ui_print "Applying bluetooth fix..."
+touch /r/var/lib/bluetooth/board-address
 
-# Set udev rules
-ui_print "Setting udev rules";
-cat /s/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' > /data/70-droidian.rules;
+# Apply wifi fix
+ui_print "Applying wifi fix..."
+cat >> enable-ipa.service<< EOF
+[Unit]
+Description=Workaround
+After=android-mount.service
+Requires=android-mount.service
 
-# umount android gsi
-umount /s;
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo 1 > /dev/ipa'
 
-# move udev rules inside rootfs
-mv /data/70-droidian.rules /r/etc/udev/rules.d/70-$VENDOR_DEVICE_PROP.rules;
+[Install]
+WantedBy=local-fs.target
+EOF
+
+mv enable-ipa.service /r/etc/systemd/system/
 
 # umount rootfs
 umount /r;
