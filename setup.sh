@@ -14,32 +14,18 @@ mount /data/rootfs.img /r;
 
 # Apply bluetooth fix
 ui_print "Applying bluetooth fix..."
-touch /r/var/lib/bluetooth/board-address
+cp data/board-address /r/var/lib/bluetooth/
 
 # Apply wifi fix
-ui_print "Applying wifi fix..."
-cat >> enable-ipa.service<< EOF
-[Unit]
-Description=Workaround
-After=android-mount.service
-Requires=android-mount.service
+ui_print "Applying WiFi fix..."
+cp data/enable-ipa.service /r/etc/systemd/system/
 
-[Service]
-Type=oneshot
-ExecStart=/bin/sh -c 'echo 1 > /dev/ipa'
-
-[Install]
-WantedBy=local-fs.target
-EOF
-
-mv enable-ipa.service /r/etc/systemd/system/
+# Apply scaling fix
+ui_print "Applying scaling fix..."
+mkdir -p /r/etc/phosh/
+cp data/rootston.ini /r/etc/phosh/
 
 # umount rootfs
 umount /r;
 
-# halium initramfs workaround,
-# create symlink to android-rootfs inside /data
-if [ ! -e /data/android-rootfs.img ]; then
-	ln -s /halium-system/var/lib/lxc/android/android-rootfs.img /data/android-rootfs.img || true
-fi
-## end install
+ui_print "All fixes applied."

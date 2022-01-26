@@ -1,0 +1,11 @@
+[Unit]
+Description=Workaround
+After=android-mount.service
+Requires=android-mount.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo 1 > /dev/ipa'
+
+[Install]
+WantedBy=local-fs.target
