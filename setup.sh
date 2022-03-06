@@ -13,7 +13,7 @@ mv /data/droidian/data/* /data/;
 # resize rootfs
 ui_print "Resizing rootfs to 8GB";
 e2fsck -fy /data/rootfs.img
-resize2fs /data/rootfs.img 8G
+resize2fs -f /data/rootfs.img 8G
 
 mkdir /s;
 mkdir /r;
