@@ -1,4 +1,4 @@
-# Droidian GSI installer Script
+# Droidian rootfs installer script
 # https://droidian.org
 
 OUTFD=/proc/self/fd/$1;
@@ -7,7 +7,7 @@ VENDOR_DEVICE_PROP=`grep ro.product.vendor.device /vendor/build.prop | cut -d "=
 # ui_print <text>
 ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
 
-## GSI install
+## rootfs install
 mv /data/droidian/data/* /data/;
 
 # resize rootfs
