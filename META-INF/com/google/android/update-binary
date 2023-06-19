@@ -1,5 +1,5 @@
 #!/sbin/sh
-# Droidian GSI Backend
+# Droidian rootfs Backend
 # Based on ubports GSI script by erfanoabdi @ xda-developers
 
 OUTFD=/proc/self/fd/$2;
@@ -68,7 +68,7 @@ abort() { ui_print "$*"; umount /vendor; umount /data; exit 1; }
 show_progress 1.34 4;
 ui_print " ";
 ui_print "***";
-ui_print "Droidian GSI installer";
+ui_print "Droidian rootfs installer";
 ui_print "https://droidian.org";
 ui_print "***";
 ui_print " ";
@@ -90,7 +90,7 @@ mkdir -p /data/droidian;
 cd /data/droidian;
 
 # unzip busybox and rootfs
-ui_print "Installing GSI...";
+ui_print "Installing Droidian...";
 unzip -o "$ZIP";
 
 if [ $? != 0 -o -z "$(ls /data/droidian/tools)" ]; then
