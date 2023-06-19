@@ -34,6 +34,66 @@ umount /s;
 # move udev rules inside rootfs
 mv /data/70-droidian.rules /r/etc/udev/rules.d/70-$VENDOR_DEVICE_PROP.rules;
 
+# function to get the partitions where to flash imgs to.
+get_partitions() {
+	current_slot=$(grep -o 'androidboot\.slot_suffix=_[a-b]' /proc/cmdline)
+	case "${current_slot}" in
+		"androidboot.slot_suffix=_a")
+			target_boot_partition="boot_a"
+			target_dtbo_partition="dtbo_a"
+			target_vbmeta_partition="vbmeta_a"
+			;;
+		"androidboot.slot_suffix=_b")
+			target_boot_partition="boot_b"
+			target_dtbo_partition="dtbo_b"
+			target_vbmeta_partition="vbmeta_b"
+			;;
+		"")
+			# No A/B
+			target_boot_partition="boot"
+			target_dtbo_partition="dtbo"
+			target_vbmeta_partition="vbmeta"
+			;;
+		*)
+			error "Unknown error while searching for a partition, exiting"
+			;;
+	esac
+}
+
+# If we should flash the kernel, do it
+if [ -e "$(ls /r/boot/boot.img*)" ]; then
+	ui_print "Kernel found, flashing"
+    get_partitions
+    partition=$(find /dev/block/platform -name "$target_boot_partition" | head -n 1)
+    if [ -n "${partition}" ]; then
+		ui_print "Found boot partition for current slot ${partition}"
+		dd if=/r/boot/boot.img* of="${partition}" || error "Unable to flash kernel"
+		ui_print "Kernel flashed"
+	fi
+fi
+
+# If we should flash the dtbo, do it
+if [ -e "$(ls /r/boot/dtbo.img*)" ]; then
+    ui_print "DTBO found, flashing"
+    get_partitions
+    partition=$(find /dev/block/platform -name "$target_dtbo_partition" | head -n 1)
+    if [ -n "${partition}" ]; then
+        ui_print "Found DTBO partition for current slot ${partition}"
+        dd if=/r/boot/dtbo.img* of="${partition}" || error "Unable to flash DTBO"
+        ui_print "DTBO flashed"
+    fi
+fi
+
+# If we should flash the vbmeta, do it
+if [ -e "$(ls /r/boot/vbmeta.img*)" ]; then
+    ui_print "VBMETA found, flashing"
+    partition=$(find /dev/block/platform -name "$target_vbmeta_partition" | head -n 1)
+    if [ -n "${partition}" ]; then
+        ui_print "Found VBMETA partition ${partition}"
+        dd if=/r/boot/vbmeta.img* of="${partition}" || error "Unable to flash VBMETA"
+        ui_print "VBMETA flashed"
+    fi
+fi
 # umount rootfs
 umount /r;
 
