@@ -10,11 +10,6 @@ ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
 ## rootfs install
 mv /data/droidian/data/* /data/;
 
-# resize rootfs
-ui_print "Resizing rootfs to 8GB";
-e2fsck -fy /data/rootfs.img
-resize2fs -f /data/rootfs.img 8G
-
 mkdir /s;
 mkdir /r;
 
@@ -26,13 +21,10 @@ mount /r/var/lib/lxc/android/android-rootfs.img /s
 
 # Set udev rules
 ui_print "Setting udev rules";
-cat /s/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' > /data/70-droidian.rules;
+cat /s/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' > /r/etc/udev/rules.d/70-$VENDOR_DEVICE_PROP.rules;
 
 # umount android gsi
 umount /s;
-
-# move udev rules inside rootfs
-mv /data/70-droidian.rules /r/etc/udev/rules.d/70-$VENDOR_DEVICE_PROP.rules;
 
 # function to get the partitions where to flash imgs to.
 get_partitions() {
@@ -62,7 +54,7 @@ get_partitions() {
 
 # If we should flash the kernel, do it
 if [ -e "$(ls /r/boot/boot.img*)" ]; then
-	ui_print "Kernel found, flashing"
+    ui_print "Kernel found, flashing"
     get_partitions
     partition=$(find /dev/block/platform -name "$target_boot_partition" | head -n 1)
     if [ -n "${partition}" ]; then
@@ -94,8 +86,29 @@ if [ -e "$(ls /r/boot/vbmeta.img*)" ]; then
         ui_print "VBMETA flashed"
     fi
 fi
-# umount rootfs
-umount /r;
+
+if [ -f /r/.full_resize ]; then
+    umount /r;
+
+    # resize rootfs
+    # first get the remaining space on the partition
+    AVAILABLE_SPACE=$(df /data | awk '/dev\/block\/sda/ {print $4}')
+    PRETTY_SIZE=$(df -h /data | awk '/dev\/block\/sda/ {print $4}')
+
+    # then remove 100MB (102400KB) from the size
+    # later on in case of kernel updates this storage might come in handy.
+    # about the same amount is preserved for LVM images in the droidian--persistent and droidian--reserved partitions.
+    IMG_SIZE=$((AVAILABLE_SPACE - 102400))
+    ui_print "Resizing rootfs to $PRETTY_SIZE";
+    e2fsck -fy /data/rootfs.img
+    resize2fs /data/rootfs.img "$IMG_SIZE"K
+else
+    umount /r;
+
+    ui_print "Resizing rootfs to 8GB";
+    e2fsck -fy /data/rootfs.img
+    resize2fs -f /data/rootfs.img 8G
+fi
 
 # halium initramfs workaround,
 # create symlink to android-rootfs inside /data
