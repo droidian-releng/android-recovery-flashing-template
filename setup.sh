@@ -56,10 +56,10 @@ get_partitions() {
 if [ -e "$(ls /r/boot/boot.img*)" ]; then
     ui_print "Kernel found, flashing"
     get_partitions
-    partition=$(find /dev/block/platform -name "$target_boot_partition" | head -n 1)
+    partition=$(find /dev/block/by-name -name "$target_boot_partition" | head -n 1)
     if [ -n "${partition}" ]; then
 		ui_print "Found boot partition for current slot ${partition}"
-		dd if=/r/boot/boot.img* of="${partition}" || error "Unable to flash kernel"
+        dd if="$(find /r/boot -name 'boot.img*')" of="${partition}" || error "Unable to flash kernel"
 		ui_print "Kernel flashed"
 	fi
 fi
@@ -68,10 +68,10 @@ fi
 if [ -e "$(ls /r/boot/dtbo.img*)" ]; then
     ui_print "DTBO found, flashing"
     get_partitions
-    partition=$(find /dev/block/platform -name "$target_dtbo_partition" | head -n 1)
+    partition=$(find /dev/block/by-name -name "$target_dtbo_partition" | head -n 1)
     if [ -n "${partition}" ]; then
         ui_print "Found DTBO partition for current slot ${partition}"
-        dd if=/r/boot/dtbo.img* of="${partition}" || error "Unable to flash DTBO"
+        dd if="$(find /r/boot -name 'dtbo.img*')" of="${partition}" || error "Unable to flash DTBO"
         ui_print "DTBO flashed"
     fi
 fi
@@ -79,10 +79,10 @@ fi
 # If we should flash the vbmeta, do it
 if [ -e "$(ls /r/boot/vbmeta.img*)" ]; then
     ui_print "VBMETA found, flashing"
-    partition=$(find /dev/block/platform -name "$target_vbmeta_partition" | head -n 1)
+    partition=$(find /dev/block/by-name -name "$target_vbmeta_partition" | head -n 1)
     if [ -n "${partition}" ]; then
         ui_print "Found VBMETA partition ${partition}"
-        dd if=/r/boot/vbmeta.img* of="${partition}" || error "Unable to flash VBMETA"
+        dd if="$(find /r/boot -name 'vbmeta.img*')" of="${partition}" || error "Unable to flash VBMETA"
         ui_print "VBMETA flashed"
     fi
 fi
