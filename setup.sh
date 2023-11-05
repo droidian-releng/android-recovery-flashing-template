@@ -92,8 +92,8 @@ if [ -f /r/.full_resize ]; then
 
     # resize rootfs
     # first get the remaining space on the partition
-    AVAILABLE_SPACE=$(df /data | awk '/dev\/block\/sda/ {print $4}')
-    PRETTY_SIZE=$(df -h /data | awk '/dev\/block\/sda/ {print $4}')
+    AVAILABLE_SPACE=$(df /data | awk '/dev\/block\/.+/ {print $4}')
+    PRETTY_SIZE=$(df -h /data | awk '/dev\/block\/.+/ {print $4}')
 
     # then remove 100MB (102400KB) from the size
     # later on in case of kernel updates this storage might come in handy.
