@@ -10,21 +10,10 @@ ui_print() { echo -e "ui_print $1\nui_print" > $OUTFD; }
 ## rootfs install
 mv /data/droidian/data/* /data/;
 
-mkdir /s;
 mkdir /r;
 
 # mount droidian rootfs
 mount /data/rootfs.img /r;
-
-# mount android gsi
-mount /r/var/lib/lxc/android/android-rootfs.img /s
-
-# Set udev rules
-ui_print "Setting udev rules";
-cat /s/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' | sed -e '/GROUP="radio"\|GROUP="root"\|GROUP="system"/!s/GROUP="\([^"]*\)"/GROUP="android_\1"/' > /r/etc/udev/rules.d/70-$VENDOR_DEVICE_PROP.rules;
-
-# umount android gsi
-umount /s;
 
 # function to get the partitions where to flash imgs to.
 get_partitions() {
