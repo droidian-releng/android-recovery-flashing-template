@@ -91,7 +91,7 @@ cd /data/droidian;
 
 # unzip busybox and rootfs
 ui_print "Installing Droidian...";
-unzip -o "$ZIP";
+unzip -o "$ZIP" tools/busybox;
 
 if [ $? != 0 -o -z "$(ls /data/droidian/tools)" ]; then
   abort "Unzip failed. Aborting...";
@@ -100,6 +100,13 @@ fi;
 # set busybox permissions
 chmod -R 755 /data/droidian/tools
 bb=/data/droidian/tools/busybox;
+
+# use busybox's unzip
+$bb unzip -o "$ZIP" -x tools/busybox;
+
+if [ $? != 0 ]; then
+  abort "Unzip failed. Aborting...";
+fi;
 
 # run setup.sh on busybox's ash
 $bb ash /data/droidian/setup.sh $2;
