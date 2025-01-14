@@ -93,7 +93,7 @@ cd /data/droidian;
 ui_print "Installing Droidian...";
 unzip -o "$ZIP" tools/busybox;
 
-if [ $? != 0 -o -z "$(ls /data/droidian/tools)" ]; then
+if [ ! -e "/data/droidian/tools/busybox" ]; then
   abort "Unzip failed. Aborting...";
 fi;
 
