@@ -17,7 +17,13 @@ mount /data/rootfs.img /r;
 
 # function to get the partitions where to flash imgs to.
 get_partitions() {
-	current_slot=$(grep -o 'androidboot\.slot_suffix=_[a-b]' /proc/cmdline)
+	if [ -f '/proc/bootconfig' ]; then
+		current_slot=$(grep -oE 'androidboot\.slot_suffix[[:space:]]*=[[:space:]]*"_[ab]"' /proc/bootconfig | sed -E 's/[[:space:]]*=[[:space:]]*"/=/' | tr -d '"')
+	fi
+
+	if [ -z "$current_slot" ]; then
+		current_slot=$(grep -o 'androidboot\.slot_suffix=_[a-b]' /proc/cmdline)
+	fi
 	case "${current_slot}" in
 		"androidboot.slot_suffix=_a")
 			target_boot_partition="boot_a"
